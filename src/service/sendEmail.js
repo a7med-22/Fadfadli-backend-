@@ -9,7 +9,7 @@ export const sendEmail = async ({ to, subject, html, attachments }) => {
     secure: true, // true for 465, false for other ports
     auth: {
       user: "ao6155518@gmail.com",
-      pass: "wzkiqxnueknchgvq",
+      pass: "bgznijumqfmwvsjm",
     },
   });
 

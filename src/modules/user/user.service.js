@@ -4,6 +4,7 @@ import userModel, { providers, userRoles } from "../../DB/models/user.model.js";
 import { emailEmitter } from "../../utils/emailEvents/index.js";
 import { decrypt, encrypt } from "../../utils/Encryption/index.js";
 import { compare, hash } from "../../utils/Hash/index.js";
+import { successResponse } from "../../utils/response.js";
 import { generateTokens } from "../../utils/token/generateTokens.js";
 import { verifyToken } from "../../utils/token/index.js";
 import { verifyGoogleAccount } from "../../utils/token/verifyTokenWithGoogle.js";
@@ -44,9 +45,21 @@ export const signup = async (req, res, next) => {
     role,
   });
 
-  return res.status(201).json({
+  return successResponse({
+    res,
+    data: {
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        age: user.age,
+        gender: user.gender,
+        role: user.role,
+      },
+    },
     message:
       "User created successfully. Please check your email to confirm your account.",
+    status: 201,
   });
 };
 
@@ -70,11 +83,32 @@ export const signIn = async (req, res, next) => {
     throw new Error("Invalid credentials", { cause: 401 });
   }
 
+  // Decrypt phone for response
+  let decryptedPhone = null;
+  if (user.phone) {
+    decryptedPhone = await decrypt({
+      cipherText: user.phone,
+      secretKey: process.env.SECRET_KEY_PHONE,
+    });
+  }
+
   const { access_token, refresh_token } = await generateTokens(user);
 
-  return res.status(200).json({
+  return successResponse({
+    res,
+    data: {
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        age: user.age,
+        gender: user.gender,
+        phone: decryptedPhone,
+      },
+      credentials: { access_token, refresh_token },
+    },
     message: "Sign in successful",
-    credentials: { access_token, refresh_token },
   });
 };
 
@@ -103,9 +137,21 @@ export const signupWithGmail = async (req, res, next) => {
     provider: providers.google,
   });
 
-  return res.status(201).json({
+  return successResponse({
+    res,
+    data: {
+      user: {
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        image: newUser.image,
+        role: newUser.role,
+        age: newUser.age,
+        gender: newUser.gender,
+      },
+    },
     message: "User created successfully",
-    user: newUser,
+    status: 201,
   });
 };
 
@@ -125,11 +171,33 @@ export const signInWithGmail = async (req, res, next) => {
     throw new Error("Invalid credentials or invalid provider", { cause: 400 });
   }
 
+  // Decrypt phone if exists for Google users
+  let decryptedPhone = null;
+  if (user.phone) {
+    decryptedPhone = await decrypt({
+      cipherText: user.phone,
+      secretKey: process.env.SECRET_KEY_PHONE,
+    });
+  }
+
   const { access_token, refresh_token } = await generateTokens(user);
 
-  return res.status(200).json({
+  return successResponse({
+    res,
+    data: {
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        age: user.age,
+        gender: user.gender,
+        phone: decryptedPhone,
+        image: user.image,
+      },
+      credentials: { access_token, refresh_token },
+    },
     message: "Sign in successful",
-    credentials: { access_token, refresh_token },
   });
 };
 
@@ -164,9 +232,25 @@ export const signupAndSigninWithGmail = async (req, res, next) => {
 
   const { access_token, refresh_token } = await generateTokens(user);
 
-  return res.status(statusCode).json({
-    message: "Signed in successful",
-    credentials: { access_token, refresh_token },
+  return successResponse({
+    res,
+    data: {
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        role: user.role,
+        age: user.age,
+        gender: user.gender,
+      },
+      credentials: { access_token, refresh_token },
+    },
+    message:
+      statusCode === 201
+        ? "User created and signed in successfully"
+        : "Signed in successful",
+    status: statusCode,
   });
 };
 
@@ -180,9 +264,12 @@ export const getProfile = async (req, res, next) => {
   }
 
   req.user.phone = decryptedPhone;
-  return res.status(200).json({
+  return successResponse({
+    res,
+    data: {
+      user: req.user,
+    },
     message: "Profile retrieved successfully",
-    user: req.user,
   });
 };
 
@@ -217,7 +304,9 @@ export const confirmEmail = async (req, res, next) => {
   user.confirmed = true;
   await user.save();
 
-  return res.status(200).json({
+  return successResponse({
+    res,
+    data: {},
     message: "Email confirmed successfully",
   });
 };
@@ -228,9 +317,13 @@ export const logout = async (req, res, next) => {
     expireAt: req.decodedUser.exp,
   });
 
-  return res
-    .status(200)
-    .json({ message: "Logged out successfully", revokeToken });
+  return successResponse({
+    res,
+    data: {
+      revokeToken,
+    },
+    message: "Logged out successfully",
+  });
 };
 
 export const refreshToken = async (req, res, next) => {
@@ -277,9 +370,14 @@ export const refreshToken = async (req, res, next) => {
 
   const { access_token, refresh_token } = await generateTokens(user);
 
-  return res
-    .status(200)
-    .json({ message: "Success", access_token, refresh_token });
+  return successResponse({
+    res,
+    data: {
+      access_token,
+      refresh_token,
+    },
+    message: "Token refreshed successfully",
+  });
 };
 
 export const updatePassword = async (req, res, next) => {
@@ -302,7 +400,11 @@ export const updatePassword = async (req, res, next) => {
     expireAt: req.decodedUser.exp,
   });
 
-  return res.status(200).json({ message: "Password updated successfully" });
+  return successResponse({
+    res,
+    data: {},
+    message: "Password updated successfully",
+  });
 };
 
 export const forgetPassword = async (req, res, next) => {
@@ -321,7 +423,11 @@ export const forgetPassword = async (req, res, next) => {
   user.otp = hashOtp;
   await user.save();
 
-  return res.status(200).json({ message: "OTP sent to email" });
+  return successResponse({
+    res,
+    data: {},
+    message: "OTP sent to email",
+  });
 };
 
 export const resetPassword = async (req, res, next) => {
@@ -340,11 +446,20 @@ export const resetPassword = async (req, res, next) => {
     plainText: password,
   });
 
-  user.password = hashedNewPassword;
-  user.otp = "";
-  await user.save();
+  await userModel.updateOne(
+    { _id: user._id },
+    {
+      $set: { password: hashedNewPassword },
+      $unset: { otp: "" }, // Completely removes the otp field
+      $inc: { __v: 1 },
+    }
+  );
 
-  return res.status(200).json({ message: "Password reset successfully" });
+  return successResponse({
+    res,
+    data: {},
+    message: "Password reset successfully",
+  });
 };
 
 export const updateProfile = async (req, res, next) => {
@@ -376,9 +491,12 @@ export const updateProfile = async (req, res, next) => {
 
   await req.user.save();
 
-  return res.status(200).json({
+  return successResponse({
+    res,
+    data: {
+      user: req.user,
+    },
     message: "Profile updated successfully",
-    user: req.user,
   });
 };
 
@@ -386,15 +504,16 @@ export const getProfileData = async (req, res, next) => {
   const { id } = req.params;
   const user = await userModel
     .findById(id)
-    .select(
-      "-password -otp -__v -role -phone -confirmed -createdAt -updatedAt"
-    );
+    .select("-password -__v -role -phone -confirmed -createdAt -updatedAt");
   if (!user) {
     throw new Error("user not exist", { cause: 404 });
   }
-  return res.status(200).json({
+  return successResponse({
+    res,
+    data: {
+      user,
+    },
     message: "Profile retrieved successfully",
-    user,
   });
 };
 
@@ -417,7 +536,11 @@ export const freezeAccount = async (req, res, next) => {
     throw new Error("Account already freezed or not exist", { cause: 400 });
   }
 
-  res.json({ message: "Account freezed successfully" });
+  return successResponse({
+    res,
+    data: {},
+    message: "Account freezed successfully",
+  });
 };
 
 export const unfreezeAccount = async (req, res, next) => {
@@ -443,5 +566,29 @@ export const unfreezeAccount = async (req, res, next) => {
     throw new Error("Account already unfreezed or not exist", { cause: 400 });
   }
 
-  res.json({ message: "Account unfreezed successfully" });
+  return successResponse({
+    res,
+    data: {},
+    message: "Account unfreezed successfully",
+  });
+};
+
+export const uploadProfileImage = async (req, res, next) => {
+  const user = await userModel.findOneAndUpdate(
+    {
+      _id: req.user._id,
+    },
+    {
+      image: req.file.filePath,
+    },
+    {
+      new: true,
+      select: "-password  -__v", // Exclude sensitive fields
+    }
+  );
+  return successResponse({
+    res,
+    data: user,
+    message: "Profile image uploaded successfully",
+  });
 };

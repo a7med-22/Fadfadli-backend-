@@ -3,6 +3,7 @@ import { userRoles } from "../../DB/models/user.model.js";
 import { authentication } from "../../middleware/authentication.js";
 import { authorization } from "../../middleware/authorization.js";
 import { validation } from "../../middleware/validation.js";
+import { localFileUpload } from "../../utils/multer/local.multer.js";
 import * as UC from "./user.service.js";
 import * as UV from "./user.validation.js";
 
@@ -95,6 +96,13 @@ userRouter.delete(
   validation(UV.unfreezeAccountSchema),
   authentication,
   UC.unfreezeAccount
+);
+
+userRouter.patch(
+  "/profile-image",
+  authentication,
+  localFileUpload({ customPath: "users" }).single("profileImage"),
+  UC.uploadProfileImage
 );
 
 export default userRouter;
