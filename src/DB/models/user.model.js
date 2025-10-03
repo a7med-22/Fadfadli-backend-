@@ -62,7 +62,8 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    image: String,
+    profileImage: String,
+    coverImages: [String],
     provider: {
       type: String,
       enum: Object.values(providers),

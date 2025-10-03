@@ -3,7 +3,7 @@ import { userRoles } from "../../DB/models/user.model.js";
 import { authentication } from "../../middleware/authentication.js";
 import { authorization } from "../../middleware/authorization.js";
 import { validation } from "../../middleware/validation.js";
-import { localFileUpload } from "../../utils/multer/local.multer.js";
+import { fileTypes, localFileUpload } from "../../utils/multer/local.multer.js";
 import * as UC from "./user.service.js";
 import * as UV from "./user.validation.js";
 
@@ -101,8 +101,20 @@ userRouter.delete(
 userRouter.patch(
   "/profile-image",
   authentication,
-  localFileUpload({ customPath: "users" }).single("profileImage"),
+  localFileUpload({ customPath: "users", typeNeeded: fileTypes.image }).single(
+    "profileImage"
+  ),
   UC.uploadProfileImage
+);
+
+userRouter.patch(
+  "/profile-cover-images",
+  authentication,
+  localFileUpload({
+    customPath: "users",
+    typeNeeded: [...fileTypes.image, fileTypes.document[0]],
+  }).array("coverImages", 4),
+  UC.uploadCoverImages
 );
 
 export default userRouter;

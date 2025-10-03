@@ -579,7 +579,7 @@ export const uploadProfileImage = async (req, res, next) => {
       _id: req.user._id,
     },
     {
-      image: req.file.filePath,
+      profileImage: req.file.filePath,
     },
     {
       new: true,
@@ -590,5 +590,25 @@ export const uploadProfileImage = async (req, res, next) => {
     res,
     data: user,
     message: "Profile image uploaded successfully",
+  });
+};
+
+export const uploadCoverImages = async (req, res, next) => {
+  const user = await userModel.findOneAndUpdate(
+    {
+      _id: req.user._id,
+    },
+    {
+      $push: { coverImages: req.files.map((file) => file.filePath) },
+    },
+    {
+      new: true,
+      select: "-password  -__v", // Exclude sensitive fields
+    }
+  );
+  return successResponse({
+    res,
+    data: user,
+    message: "Cover images uploaded successfully",
   });
 };

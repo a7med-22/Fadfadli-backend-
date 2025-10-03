@@ -1,5 +1,7 @@
 export const validation = (schema) => {
   return (req, res, next) => {
+    console.log(req.files, req.file);
+
     let validationErrors = [];
 
     for (const key of Object.keys(schema)) {

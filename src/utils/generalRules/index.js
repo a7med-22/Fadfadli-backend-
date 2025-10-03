@@ -23,6 +23,17 @@ export const generalRules = {
   confirmPassword: Joi.string().valid(Joi.ref("password")),
   phone: Joi.string().pattern(new RegExp(/^(002|\+2)?01[0125][0-9]{8}$/)),
   otp: Joi.string().length(6),
+  file: {
+    fieldname: Joi.string().required(),
+    originalname: Joi.string().required(),
+    encoding: Joi.string().required(),
+    mimetype: Joi.string().required(),
+    size: Joi.number()
+      .max(5 * 1024 * 1024)
+      .required(), // Max 5MB
+    destination: Joi.string().required(),
+    filename: Joi.string().required(),
+  },
   headers: Joi.object({
     authorization: Joi.string().required(),
     "user-agent": Joi.string().required(),

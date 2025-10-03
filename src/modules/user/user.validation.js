@@ -35,7 +35,7 @@ export const signinSchema = createCompleteSchema({
     password: Joi.string().min(1).required().messages({
       "string.min": "Password is required",
       "any.required": "Password is required",
-      "string.empty": "Password cannot be empty"
+      "string.empty": "Password cannot be empty",
     }),
   }).required(),
 });
