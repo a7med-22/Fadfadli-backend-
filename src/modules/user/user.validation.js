@@ -5,12 +5,22 @@ import { fileTypes } from "../../utils/multer/local.multer.js";
 
 // Helper function to create complete validation schemas
 const createCompleteSchema = (schemaObject) => {
-  return {
+  const schema = {
     body: schemaObject.body || Joi.object({}).unknown(false),
     params: schemaObject.params || Joi.object({}).unknown(false),
     query: schemaObject.query || Joi.object({}).unknown(false),
-    headers: schemaObject.headers || Joi.object({}).unknown(true), // Allow other headers like user-agent
+    headers: schemaObject.headers || Joi.object({}).unknown(true),
   };
+
+  if (schemaObject.file) {
+    schema.file = schemaObject.file;
+  }
+
+  if (schemaObject.files) {
+    schema.files = schemaObject.files;
+  }
+
+  return schema;
 };
 
 export const signupSchema = createCompleteSchema({
@@ -135,8 +145,9 @@ export const uploadProfileImageSchema = createCompleteSchema({
     filePath: generalRules.file.filePath,
     destination: generalRules.file.destination,
     filename: generalRules.file.filename,
+    path: generalRules.file.path,
+    size: generalRules.file.size,
   }).required(),
-  headers: generalRules.headers,
 });
 
 export const uploadCoverImagesSchema = createCompleteSchema({
@@ -152,6 +163,8 @@ export const uploadCoverImagesSchema = createCompleteSchema({
         filePath: generalRules.file.filePath,
         destination: generalRules.file.destination,
         filename: generalRules.file.filename,
+        path: generalRules.file.path,
+        size: generalRules.file.size,
       }).required()
     )
     .min(1)
