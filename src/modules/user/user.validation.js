@@ -1,6 +1,7 @@
 import Joi from "joi";
 import { userGender } from "../../DB/models/user.model.js";
 import { generalRules } from "../../utils/generalRules/index.js";
+import { fileTypes } from "../../utils/multer/local.multer.js";
 
 // Helper function to create complete validation schemas
 const createCompleteSchema = (schemaObject) => {
@@ -121,4 +122,39 @@ export const confirmEmailSchema = createCompleteSchema({
 
 export const getProfilePublicSchema = createCompleteSchema({
   headers: generalRules.headers,
+});
+
+export const uploadProfileImageSchema = createCompleteSchema({
+  file: Joi.object({
+    fieldname: generalRules.file.fieldname.valid("profileImage"),
+    originalname: generalRules.file.originalname,
+    encoding: generalRules.file.encoding,
+    mimetype: generalRules.file.mimetype.valid(
+      ...Object.values(fileTypes.image)
+    ),
+    filePath: generalRules.file.filePath,
+    destination: generalRules.file.destination,
+    filename: generalRules.file.filename,
+  }).required(),
+  headers: generalRules.headers,
+});
+
+export const uploadCoverImagesSchema = createCompleteSchema({
+  files: Joi.array()
+    .items(
+      Joi.object({
+        fieldname: generalRules.file.fieldname.valid("coverImages"),
+        originalname: generalRules.file.originalname,
+        encoding: generalRules.file.encoding,
+        mimetype: generalRules.file.mimetype.valid(
+          ...Object.values(fileTypes.image)
+        ),
+        filePath: generalRules.file.filePath,
+        destination: generalRules.file.destination,
+        filename: generalRules.file.filename,
+      }).required()
+    )
+    .min(1)
+    .max(2)
+    .required(),
 });

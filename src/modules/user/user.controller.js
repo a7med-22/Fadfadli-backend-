@@ -104,6 +104,7 @@ userRouter.patch(
   localFileUpload({ customPath: "users", typeNeeded: fileTypes.image }).single(
     "profileImage"
   ),
+  validation(UV.uploadProfileImageSchema),
   UC.uploadProfileImage
 );
 
@@ -112,8 +113,9 @@ userRouter.patch(
   authentication,
   localFileUpload({
     customPath: "users",
-    typeNeeded: [...fileTypes.image, fileTypes.document[0]],
+    typeNeeded: fileTypes.image,
   }).array("coverImages", 4),
+  validation(UV.uploadCoverImagesSchema),
   UC.uploadCoverImages
 );
 
