@@ -114,7 +114,7 @@ userRouter.patch(
   localFileUpload({
     customPath: "users",
     typeNeeded: fileTypes.image,
-  }).array("coverImages", 4),
+  }).array("coverImages", 2),
   validation(UV.uploadCoverImagesSchema),
   UC.uploadCoverImages
 );

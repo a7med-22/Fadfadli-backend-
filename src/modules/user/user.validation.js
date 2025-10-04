@@ -167,7 +167,7 @@ export const uploadCoverImagesSchema = createCompleteSchema({
         size: generalRules.file.size,
       }).required()
     )
-    .min(1)
+
     .max(2)
     .required(),
 });

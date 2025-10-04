@@ -17,9 +17,13 @@ export const validation = (schema) => {
     }
 
     if (validationErrors.length) {
-      return res.status(400).json({
-        error: validationErrors,
-      });
+      const errorMessage = validationErrors
+        .map((err) => `${err.key}: ${err.message}`)
+        .join(", ");
+      const error = new Error(`Validation failed: ${errorMessage}`);
+      error.cause = 400;
+      error.validationErrors = validationErrors; // Keep detailed errors for debugging
+      throw error;
     }
 
     return next();
