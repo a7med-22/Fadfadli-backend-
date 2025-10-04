@@ -154,17 +154,18 @@ export const uploadCoverImagesSchema = createCompleteSchema({
   files: Joi.array()
     .items(
       Joi.object({
-        fieldname: generalRules.file.fieldname.valid("coverImages"),
-        originalname: generalRules.file.originalname,
-        encoding: generalRules.file.encoding,
+
+        fieldname: generalRules.file.fieldname.valid("coverImages").required(),
+        originalname: generalRules.file.originalname.required(),
+        encoding: generalRules.file.encoding.required(),
         mimetype: generalRules.file.mimetype.valid(
           ...Object.values(fileTypes.image)
         ),
-        filePath: generalRules.file.filePath,
-        destination: generalRules.file.destination,
-        filename: generalRules.file.filename,
-        path: generalRules.file.path,
-        size: generalRules.file.size,
+        filePath: generalRules.file.filePath.required(),
+        destination: generalRules.file.destination.required(),
+        filename: generalRules.file.filename.required(),
+        path: generalRules.file.path.required(),
+        size: generalRules.file.size.required(),
       }).required()
     )
 

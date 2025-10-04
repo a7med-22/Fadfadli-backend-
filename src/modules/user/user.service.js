@@ -383,18 +383,55 @@ export const refreshToken = async (req, res, next) => {
 export const updatePassword = async (req, res, next) => {
   const { oldPassword, password } = req.body;
 
+  // Check if old password is correct
   if (
     !(await compare({ plainText: oldPassword, cipherText: req.user.password }))
   ) {
     throw new Error("invalid oldPassword", { cause: 400 });
   }
+
+  // Check if new password is same as current password
+  if (await compare({ plainText: password, cipherText: req.user.password })) {
+    throw new Error(
+      "Password has been used recently. Please choose a different password",
+      {
+        cause: 400,
+      }
+    );
+  }
+
+  // Check if new password matches any old password
+  const oldPasswords = req.user.oldPasswords || [];
+  for (const oldPassword of oldPasswords) {
+    if (await compare({ plainText: password, cipherText: oldPassword })) {
+      throw new Error(
+        "Password has been used recently. Please choose a different password",
+        {
+          cause: 400,
+        }
+      );
+    }
+  }
+
+  // Hash the new password
   const hashedNewPassword = await hash({
     plainText: password,
   });
 
+  // Add current password to oldPasswords array
+  req.user.oldPasswords = req.user.oldPasswords || [];
+  req.user.oldPasswords.push(req.user.password);
+
+  // Keep only last 5 old passwords to prevent unlimited growth
+  if (req.user.oldPasswords.length > 5) {
+    req.user.oldPasswords = req.user.oldPasswords.slice(-5);
+  }
+
+  // Update to new password
   req.user.password = hashedNewPassword;
   await req.user.save();
 
+  // Revoke current token to force re-login
   await revokeTokenModel.create({
     tokenId: req.decodedUser.jti,
     expireAt: req.decodedUser.exp,
@@ -435,25 +472,61 @@ export const resetPassword = async (req, res, next) => {
 
   const user = await userModel.findOne({ email, otp: { $exists: true } });
   if (!user) {
-    throw new Error("user not exist", { cause: 404 });
+    throw new Error("user not exist or OTP expired", { cause: 404 });
   }
 
   if (!(await compare({ plainText: otp, cipherText: user.otp }))) {
     throw new Error("Invalid OTP", { cause: 400 });
   }
 
+  // Check if new password is same as current password
+  if (
+    user.password &&
+    (await compare({ plainText: password, cipherText: user.password }))
+  ) {
+    throw new Error(
+      "Password has been used recently. Please choose a different password",
+      {
+        cause: 400,
+      }
+    );
+  }
+
+  // Check if new password matches any old password
+  const oldPasswords = user.oldPasswords || [];
+  for (const oldPassword of oldPasswords) {
+    if (await compare({ plainText: password, cipherText: oldPassword })) {
+      throw new Error(
+        "Password has been used recently. Please choose a different password",
+        {
+          cause: 400,
+        }
+      );
+    }
+  }
+
   const hashedNewPassword = await hash({
     plainText: password,
   });
 
-  await userModel.updateOne(
-    { _id: user._id },
-    {
-      $set: { password: hashedNewPassword },
-      $unset: { otp: "" }, // Completely removes the otp field
-      $inc: { __v: 1 },
-    }
-  );
+  // Prepare update object
+  const updateObject = {
+    $set: { password: hashedNewPassword },
+    $unset: { otp: "" }, // Completely removes the otp field
+    $inc: { __v: 1 },
+  };
+
+  // Add current password to oldPasswords if it exists
+  if (user.password) {
+    updateObject.$push = {
+      oldPasswords: {
+        $each: [user.password],
+        $slice: -5, // Keep only last 5 old passwords
+      },
+    };
+  }
+
+  await userModel.updateOne({ _id: user._id }, updateObject);
 
   return successResponse({
     res,

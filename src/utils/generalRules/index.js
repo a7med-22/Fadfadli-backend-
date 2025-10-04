@@ -34,14 +34,14 @@ export const generalRules = {
   }),
 
   file: {
-    fieldname: Joi.string().required(),
-    originalname: Joi.string().required(),
-    encoding: Joi.string().required(),
-    mimetype: Joi.string().required(),
-    filePath: Joi.string().required(),
-    destination: Joi.string().required(),
-    filename: Joi.string().required(),
-    path: Joi.string().required(),
-    size: Joi.number().positive().required(),
+    fieldname: Joi.string(),
+    originalname: Joi.string(),
+    encoding: Joi.string(),
+    mimetype: Joi.string(),
+    filePath: Joi.string(),
+    destination: Joi.string(),
+    filename: Joi.string(),
+    path: Joi.string(),
+    size: Joi.number().positive(),
   },
 };

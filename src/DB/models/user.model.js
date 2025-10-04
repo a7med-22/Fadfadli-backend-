@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema(
       required: isFieldRequired,
       minLength: 6,
     },
+    oldPasswords: [
+      {
+        type: String,
+      },
+    ],
     age: {
       type: Number,
       min: 0,
