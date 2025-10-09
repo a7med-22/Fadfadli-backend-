@@ -4,6 +4,12 @@ import userModel, { providers, userRoles } from "../../DB/models/user.model.js";
 import { emailEmitter } from "../../utils/emailEvents/index.js";
 import { decrypt, encrypt } from "../../utils/Encryption/index.js";
 import { compare, hash } from "../../utils/Hash/index.js";
+import {
+  destroyFile,
+  destroyFiles,
+  uploadFile,
+  uploadFiles,
+} from "../../utils/multer/cloudinary.js";
 import { successResponse } from "../../utils/response.js";
 import { generateTokens } from "../../utils/token/generateTokens.js";
 import { verifyToken } from "../../utils/token/index.js";
@@ -646,39 +652,121 @@ export const unfreezeAccount = async (req, res, next) => {
   });
 };
 
-export const uploadProfileImage = async (req, res, next) => {
+// for local storage
+// export const uploadProfileImageLocal = async (req, res, next) => {
+//   const user = await userModel.findOneAndUpdate(
+//     {
+//       _id: req.user._id,
+//     },
+//     {
+//       profileImage: req.file.filePath,
+//     },
+//     {
+//       new: true,
+//       select: "-password  -__v", // Exclude sensitive fields
+//     }
+//   );
+//   return successResponse({
+//     res,
+//     data: user,
+//     message: "Profile image uploaded successfully",
+//   });
+// };
+
+// for local storage
+// export const uploadCoverImagesLocal = async (req, res, next) => {
+//   const user = await userModel.findOneAndUpdate(
+//     {
+//       _id: req.user._id,
+//     },
+//     {
+//       $push: { coverImages: req.files.map((file) => file.filePath) },
+//     },
+//     {
+//       new: true,
+//       select: "-password  -__v", // Exclude sensitive fields
+//     }
+//   );
+//   return successResponse({
+//     res,
+//     data: user,
+//     message: "Cover images uploaded successfully",
+//   });
+// };
+
+// for cloud storage
+export const uploadProfileImageCloud = async (req, res, next) => {
+  console.log(req.file);
+  const { secure_url, public_id } = await uploadFile({
+    file: req.file,
+    filePath: `users/${req.user._id}`,
+  });
+
+  if (!secure_url || !public_id) {
+    throw new Error("Failed to upload image to cloud", { cause: 500 });
+  }
+
   const user = await userModel.findOneAndUpdate(
     {
       _id: req.user._id,
     },
     {
-      profileImage: req.file.filePath,
+      profileImage: { secure_url, public_id },
     },
     {
-      new: true,
+      new: false, // to get the old data before update and delete the old image from cloud
       select: "-password  -__v", // Exclude sensitive fields
     }
   );
+
+  // Delete previous image from cloud if exists
+  if (user.profileImage?.public_id) {
+    await destroyFile({ publicId: user.profileImage.public_id });
+  }
+
   return successResponse({
     res,
-    data: user,
+    data: req.file,
     message: "Profile image uploaded successfully",
   });
 };
 
-export const uploadCoverImages = async (req, res, next) => {
+// for cloud storage
+export const uploadCoverImagesCloud = async (req, res, next) => {
+  console.log(req.files);
+  const attachments = await uploadFiles({
+    files: req.files,
+    filePath: `users/${req.user._id}/cover`,
+  });
+
+  if (attachments.length === 0) {
+    throw new Error("Failed to upload images to cloud", { cause: 500 });
+  }
+  console.log(attachments);
+
   const user = await userModel.findOneAndUpdate(
     {
       _id: req.user._id,
     },
     {
-      $push: { coverImages: req.files.map((file) => file.filePath) },
+      coverImages: attachments,
     },
     {
-      new: true,
+      new: false,
       select: "-password  -__v", // Exclude sensitive fields
     }
   );
+
+  if (user.coverImages?.length) {
+    await destroyFiles({
+      publicIds: user.coverImages.map((img) => img.public_id),
+      options: {
+        type: "upload",
+        resource_type: "image",
+      },
+    });
+  }
+
   return successResponse({
     res,
     data: user,

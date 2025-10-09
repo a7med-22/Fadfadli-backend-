@@ -67,8 +67,26 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    profileImage: String,
-    coverImages: [String],
+    // for local
+    // profileImage: String,
+
+    // for local
+    // coverImages: [String],
+
+    // for cloud
+
+    coverImages: [
+      {
+        secure_url: String,
+        public_id: String,
+      },
+    ],
+
+    // for cloud
+    profileImage: {
+      secure_url: String,
+      public_id: String,
+    },
     provider: {
       type: String,
       enum: Object.values(providers),

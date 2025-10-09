@@ -142,7 +142,8 @@ export const uploadProfileImageSchema = createCompleteSchema({
     mimetype: generalRules.file.mimetype.valid(
       ...Object.values(fileTypes.image)
     ),
-    filePath: generalRules.file.filePath,
+    //for local only
+    // filePath: generalRules.file.filePath,
     destination: generalRules.file.destination,
     filename: generalRules.file.filename,
     path: generalRules.file.path,
@@ -150,18 +151,19 @@ export const uploadProfileImageSchema = createCompleteSchema({
   }).required(),
 });
 
+const maxNumberOfFiles = 4;
 export const uploadCoverImagesSchema = createCompleteSchema({
   files: Joi.array()
     .items(
       Joi.object({
-
         fieldname: generalRules.file.fieldname.valid("coverImages").required(),
         originalname: generalRules.file.originalname.required(),
         encoding: generalRules.file.encoding.required(),
         mimetype: generalRules.file.mimetype.valid(
           ...Object.values(fileTypes.image)
         ),
-        filePath: generalRules.file.filePath.required(),
+        // for local only
+        // filePath: generalRules.file.filePath.required(),
         destination: generalRules.file.destination.required(),
         filename: generalRules.file.filename.required(),
         path: generalRules.file.path.required(),
@@ -169,6 +171,6 @@ export const uploadCoverImagesSchema = createCompleteSchema({
       }).required()
     )
 
-    .max(2)
+    .max(maxNumberOfFiles)
     .required(),
 });

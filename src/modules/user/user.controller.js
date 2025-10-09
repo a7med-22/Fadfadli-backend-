@@ -3,7 +3,8 @@ import { userRoles } from "../../DB/models/user.model.js";
 import { authentication } from "../../middleware/authentication.js";
 import { authorization } from "../../middleware/authorization.js";
 import { validation } from "../../middleware/validation.js";
-import { fileTypes, localFileUpload } from "../../utils/multer/local.multer.js";
+import { cloudFileUpload } from "../../utils/multer/cloud.multer.js";
+import { fileTypes } from "../../utils/multer/local.multer.js";
 import * as UC from "./user.service.js";
 import * as UV from "./user.validation.js";
 
@@ -98,25 +99,48 @@ userRouter.delete(
   UC.unfreezeAccount
 );
 
+// using local hard disk multer
+
+// userRouter.patch(
+//   "/profile-image",
+//   authentication,
+//   localFileUpload({ customPath: "users", typeNeeded: fileTypes.image }).single(
+//     "profileImage"
+//   ),
+//   validation(UV.uploadProfileImageSchema),
+//   UC.uploadProfileImage
+// );
+
+// using local hard disk multer
+// userRouter.patch(
+//   "/profile-cover-images",
+//   authentication,
+//   localFileUpload({
+//     customPath: "users",
+//     typeNeeded: fileTypes.image,
+//   }).array("coverImages", 2),
+//   validation(UV.uploadCoverImagesSchema),
+//   UC.uploadCoverImages
+// );
+
+// using cloud (cloudinary) multer
 userRouter.patch(
   "/profile-image",
   authentication,
-  localFileUpload({ customPath: "users", typeNeeded: fileTypes.image }).single(
-    "profileImage"
-  ),
+  cloudFileUpload({ typeNeeded: fileTypes.image }).single("profileImage"),
   validation(UV.uploadProfileImageSchema),
-  UC.uploadProfileImage
+  UC.uploadProfileImageCloud
 );
 
+// using cloud (cloudinary) multer
 userRouter.patch(
   "/profile-cover-images",
   authentication,
-  localFileUpload({
-    customPath: "users",
+  cloudFileUpload({
     typeNeeded: fileTypes.image,
-  }).array("coverImages", 2),
+  }).array("coverImages", UV.maxNumberOfFiles),
   validation(UV.uploadCoverImagesSchema),
-  UC.uploadCoverImages
+  UC.uploadCoverImagesCloud
 );
 
 export default userRouter;
