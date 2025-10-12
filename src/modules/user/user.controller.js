@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { userRoles } from "../../DB/models/user.model.js";
 import { authentication } from "../../middleware/authentication.js";
 import { authorization } from "../../middleware/authorization.js";
 import { validation } from "../../middleware/validation.js";
 import { cloudFileUpload } from "../../utils/multer/cloud.multer.js";
 import { fileTypes } from "../../utils/multer/local.multer.js";
+import { endpointsAuthorization } from "./user.authorization.js";
 import * as UC from "./user.service.js";
 import * as UV from "./user.validation.js";
 
@@ -43,7 +43,7 @@ userRouter.get(
   "/getProfile",
   validation(UV.getProfilePublicSchema),
   authentication,
-  authorization([userRoles.user]),
+  authorization(endpointsAuthorization.getProfile),
   UC.getProfile
 );
 userRouter.get(
@@ -97,6 +97,14 @@ userRouter.delete(
   validation(UV.unfreezeAccountSchema),
   authentication,
   UC.unfreezeAccount
+);
+
+userRouter.delete(
+  "/delete/{:id}",
+  validation(UV.deleteAccountSchema),
+  authentication,
+  authorization(endpointsAuthorization.deleteAccount),
+  UC.deleteAccount
 );
 
 // using local hard disk multer

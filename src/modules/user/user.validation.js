@@ -105,6 +105,13 @@ export const freezeAccountSchema = createCompleteSchema({
 
 export const unfreezeAccountSchema = freezeAccountSchema;
 
+export const deleteAccountSchema = createCompleteSchema({
+  params: Joi.object({
+    id: generalRules.id.required(),
+  }),
+  headers: generalRules.headers,
+});
+
 export const signupWithGmailSchema = createCompleteSchema({
   body: Joi.object({
     idToken: Joi.string().required(),

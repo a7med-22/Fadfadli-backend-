@@ -633,11 +633,13 @@ export const unfreezeAccount = async (req, res, next) => {
     throw new Error("You can't unfreeze this account", { cause: 403 });
   }
 
+  // Only the actor who froze the account (stored in deletedBy) can unfreeze it.
+  // If an admin froze another user's account, only that same admin can unfreeze it.
   const userUnfreezed = await userModel.updateOne(
     {
       _id: id || req.user._id,
       deletedAt: { $exists: true },
-      deletedBy: { $ne: id }, 
+      deletedBy: req.user._id, // Ensure only the user freezed the account is the only one can unfreezed the account
     },
     {
       $unset: { deletedAt: "", deletedBy: "" },
@@ -657,6 +659,23 @@ export const unfreezeAccount = async (req, res, next) => {
     res,
     data: {},
     message: "Account unfreezed successfully",
+  });
+};
+export const deleteAccount = async (req, res, next) => {
+  const { id } = req.params;
+
+  const userDeleted = await userModel.deleteOne({
+    _id: id || req.user._id,
+    deletedAt: { $exists: true },
+  });
+
+  if (!userDeleted.deletedCount) {
+    throw new Error("Account already deleted or not exist", { cause: 400 });
+  }
+
+  return successResponse({
+    res,
+    message: "Account deleted successfully",
   });
 };
 
