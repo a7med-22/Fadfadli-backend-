@@ -606,9 +606,13 @@ export const freezeAccount = async (req, res, next) => {
   const userFreezed = await userModel.updateOne(
     {
       _id: id || req.user._id,
-      isDeleted: { $exists: false },
+      deletedAt: { $exists: false },
     },
-    { $set: { isDeleted: true, deletedBy: req.user._id }, $inc: { __v: 1 } }
+    {
+      $set: { deletedAt: new Date(), deletedBy: req.user._id },
+      $inc: { __v: 1 },
+      $unset: { restoredAt: "", restoredBy: "" },
+    }
   );
 
   if (!userFreezed.modifiedCount) {
@@ -632,12 +636,16 @@ export const unfreezeAccount = async (req, res, next) => {
   const userUnfreezed = await userModel.updateOne(
     {
       _id: id || req.user._id,
-      isDeleted: { $exists: true },
+      deletedAt: { $exists: true },
+      deletedBy: { $ne: id }, 
     },
     {
-      $unset: { isDeleted: "", deletedBy: "" },
+      $unset: { deletedAt: "", deletedBy: "" },
       $inc: { __v: 1 },
-      $set: { restoredBy: req.user._id },
+      $set: {
+        restoredAt: new Date(),
+        restoredBy: req.user._id,
+      },
     }
   );
 

@@ -93,11 +93,12 @@ const userSchema = new mongoose.Schema(
       default: providers.system,
     },
     otp: String,
-    isDeleted: Boolean,
+    deletedAt: Date,
     deletedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
     },
+    restoredAt: Date,
     restoredBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
