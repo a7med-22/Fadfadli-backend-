@@ -4,11 +4,26 @@ const messageSchema = new mongoose.Schema(
   {
     content: {
       type: String,
-      required: true,
       trim: true,
       minLength: 1,
+      maxLength: 200000,
+      required: function () {
+        return this.attachments.length === 0;
+      },
     },
-    userId: {
+
+    attachments: [
+      {
+        secure_url: String,
+        public_id: String,
+      },
+    ],
+
+    senderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+    },
+    receiverId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
       required: true,

@@ -290,7 +290,6 @@ export const confirmEmail = async (req, res, next) => {
     token,
     signature: process.env.CONFIRMATION_EMAIL,
   });
-  console.log(decodedEmail);
 
   if (!decodedEmail) {
     throw new Error("Invalid or expired token", { cause: 401 });
@@ -723,7 +722,6 @@ export const deleteAccount = async (req, res, next) => {
 
 // for cloud storage
 export const uploadProfileImageCloud = async (req, res, next) => {
-  console.log(req.file);
   const { secure_url, public_id } = await uploadFile({
     file: req.file,
     filePath: `users/${req.user._id}`,
@@ -760,7 +758,6 @@ export const uploadProfileImageCloud = async (req, res, next) => {
 
 // for cloud storage
 export const uploadCoverImagesCloud = async (req, res, next) => {
-  console.log(req.files);
   const attachments = await uploadFiles({
     files: req.files,
     filePath: `users/${req.user._id}/cover`,
@@ -769,7 +766,6 @@ export const uploadCoverImagesCloud = async (req, res, next) => {
   if (attachments.length === 0) {
     throw new Error("Failed to upload images to cloud", { cause: 500 });
   }
-  console.log(attachments);
 
   const user = await userModel.findOneAndUpdate(
     {

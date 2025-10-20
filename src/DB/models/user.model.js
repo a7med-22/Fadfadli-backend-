@@ -15,6 +15,11 @@ export const providers = {
   google: "google",
 };
 
+export const activeUser = {
+  confirmed: true,
+  deletedAt: { $exists: false },
+};
+
 function isFieldRequired() {
   return this.provider === providers.system;
 }

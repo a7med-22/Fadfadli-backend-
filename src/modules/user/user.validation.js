@@ -2,26 +2,7 @@ import Joi from "joi";
 import { userGender } from "../../DB/models/user.model.js";
 import { generalRules } from "../../utils/generalRules/index.js";
 import { fileTypes } from "../../utils/multer/local.multer.js";
-
-// Helper function to create complete validation schemas
-const createCompleteSchema = (schemaObject) => {
-  const schema = {
-    body: schemaObject.body || Joi.object({}).unknown(false),
-    params: schemaObject.params || Joi.object({}).unknown(false),
-    query: schemaObject.query || Joi.object({}).unknown(false),
-    headers: schemaObject.headers || Joi.object({}).unknown(true),
-  };
-
-  if (schemaObject.file) {
-    schema.file = schemaObject.file;
-  }
-
-  if (schemaObject.files) {
-    schema.files = schemaObject.files;
-  }
-
-  return schema;
-};
+import { createCompleteSchema } from "../../utils/validation.js";
 
 export const signupSchema = createCompleteSchema({
   body: Joi.object({
