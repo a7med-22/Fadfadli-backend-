@@ -40,6 +40,7 @@ export const sendMessage = async (req, res, next) => {
 
   return successResponse({
     res,
+    status: 201,
     data: message,
     message: "Message sent successfully",
   });
