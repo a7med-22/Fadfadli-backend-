@@ -114,5 +114,12 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+userSchema.virtual("messages", {
+  ref: "message",
+  localField: "_id",
+  foreignField: "receiverId",
+});
+
+
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);
 export default userModel;

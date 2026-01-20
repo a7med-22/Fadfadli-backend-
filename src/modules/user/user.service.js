@@ -261,19 +261,20 @@ export const signupAndSigninWithGmail = async (req, res, next) => {
 };
 
 export const getProfile = async (req, res, next) => {
+  const user = await userModel.findById(req.user._id).populate("messages");
   var decryptedPhone = await decrypt({
-    cipherText: req.user.phone,
+    cipherText: user.phone,
     secretKey: process.env.SECRET_KEY_PHONE,
   });
   if (!decryptedPhone) {
     throw new Error("Failed to decrypt phone number", { cause: 500 });
   }
 
-  req.user.phone = decryptedPhone;
+  user.phone = decryptedPhone;
   return successResponse({
     res,
     data: {
-      user: req.user,
+      user: user,
     },
     message: "Profile retrieved successfully",
   });
