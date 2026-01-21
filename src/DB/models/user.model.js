@@ -111,6 +111,9 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+    id: false, // prevent automatic virtual "id" alias for "_id"
   }
 );
 
